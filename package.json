@@ -9,8 +9,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@react-three/drei": "9.32",
+    "@react-three/fiber": "8.8",
+    "leva": "^0.9.34",
+    "r3f-perf": "6.5",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "three": "^0.145.0"
   },
   "devDependencies": {
     "@types/react": "^18.0.26",
