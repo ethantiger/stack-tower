@@ -1,3 +1,5 @@
+import { useKeyboardControls } from "@react-three/drei"
+
 function Start() {
     return <>
         <mesh position-y={-0.5}>
@@ -11,18 +13,19 @@ function Start() {
     </>
 }
 
-function NewBlock() {
+function NewBlock({position, color, boxSize}) {
     return <>
-        <mesh position={[0,-0.2, -1.5]}>
-            <boxGeometry args={[1,0.2,1]}/>
-            <meshStandardMaterial color="#7CA5B8"/>
+        <mesh position={position}>
+            <boxGeometry args={boxSize}/>
+            <meshStandardMaterial color={color}/>
         </mesh>
     </>
 }
 
 export default function Level() {
+    const [sub, get] = useKeyboardControls()
     return <>
         <Start />
-        <NewBlock />
+        <NewBlock boxSize={[1,0.2,1]} position={[0,-0.2, -1.5]} color={'#7CA5B8'}/>
     </>
 }
