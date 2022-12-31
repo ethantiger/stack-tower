@@ -1,12 +1,21 @@
+
+import { OrbitControls } from '@react-three/drei'
+
+import Level from './Level'
+import Lights from './assets/Lights'
 import './App.css'
+
 
 function App() {
 
-  return (
-    <div className="App">
+  return <>
+    <color args={['#C6EBBE']} attach='background'/>
+    <OrbitControls />
 
-    </div>
-  )
+    <Lights />
+    <Level />
+
+  </>
 }
 
 export default App
