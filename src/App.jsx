@@ -13,7 +13,7 @@ function App() {
     <Perf position='top-left'/>
     <OrbitControls />
     <Lights />
-    <Level count={10}/>
+    <Level />
   </>
 }
 

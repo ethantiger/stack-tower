@@ -1,7 +1,7 @@
 import useGame from "./stores/useGame";
 import { useKeyboardControls } from "@react-three/drei";
-import { useEffect, useState, useMemo, useRef } from "react";
-import * as THREE from 'three'
+import { useEffect, useState, useRef } from "react";
+import { useFrame, useThree } from "@react-three/fiber";
 
 function Start() {
     return <>
@@ -16,30 +16,52 @@ function Start() {
     </>
 }
 
-function GenerateBlock({position = [0,-0.2, -1.5], color='#7CA5B8', boxSize=[1,0.2,1]}) {
+function GenerateBlock({position, color, boxSize, idx, animate = true}) {
+    const block = useRef()
+    useFrame((state, delta) => {
+        if (animate) {
+            const time = state.clock.elapsedTime
+
+            // console.log(state)
+            idx % 2 === 0 ? block.current.position.z = -1.5 * Math.sin(time + Math.PI/2) : block.current.position.x = -1.5 * Math.sin(time + Math.PI/2)
+    
+        }
+    })
+
     return (
-        <group position={position}>
-            <mesh>
-                <boxGeometry args={boxSize}/>
-                <meshStandardMaterial color={color}/>
-            </mesh>
-        </group>
+        <mesh ref={block} position={position}>
+            <boxGeometry args={boxSize}/>
+            <meshStandardMaterial color={color}/>
+        </mesh>
     )
 }
 
-export default function Level({count = 5}) {
+const nextBlock = (blocks) => {
+    return {
+        boxSize: [1,0.2,1],
+        position: blocks.length % 2 === 0 ? [0,-0.2 + blocks.length * 0.2, -1.5] : [-1.5,-0.2 + blocks.length * 0.2, 0],
+        color: '#7CA5B8'
+    }
+}
+
+export default function Level() {
     const [blocks, setBlocks] = useState([])
     const [sub, get] = useKeyboardControls()
     const phase = useGame((state) => state.phase)
     const start = useGame((state) => state.start)
+    const {clock} = useThree()
     
     useEffect(() => {
         const unsubDrop = sub(
             (state) => state.drop,
             (value) => {
                 if (value)  {
-                    setBlocks([...blocks, GenerateBlock])
-                    console.log(blocks)
+                    setBlocks((blocks) => {
+                        if (blocks.length > 0) return [...blocks, blocks[blocks.length - 1].animate = false]
+                    })
+                    const newBlock = nextBlock(blocks)
+                    setBlocks([...blocks, newBlock ])
+                    clock.start()
                 }                    
             }
         )
@@ -47,7 +69,6 @@ export default function Level({count = 5}) {
         const unsubAll = sub(
             () => start()
         )
-
         return () => {
             unsubAll()
             unsubDrop()
@@ -56,8 +77,9 @@ export default function Level({count = 5}) {
 
     return <>
         <Start />
-        {blocks.map((Block, idx) => { 
-            return <Block key={idx} boxSize={[1,0.2,1]} position={[0,-0.2 + idx, -1.5]} color='#7CA5B8'/>
-        })}
+        {blocks.map((block, idx) => idx % 2 === 0 ? 
+                <GenerateBlock key={idx} boxSize={block.boxSize} position={block.position} color={block.color} idx={idx} animate={block.animate}/> : 
+                <GenerateBlock key={idx} boxSize={block.boxSize} position={block.position} color={block.color} idx={idx} animate={block.animate}/>
+        )}
     </>
 }
