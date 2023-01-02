@@ -2,7 +2,7 @@ import useGame from "./stores/useGame";
 import { useKeyboardControls } from "@react-three/drei";
 import { useEffect, useState, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-
+import * as THREE from 'three'
 
 function Start() {
     return <>
@@ -74,17 +74,20 @@ export default function Level() {
     // const [phase, setPhase] = useState('start')
     const phase = useGame((state) => state.phase)
     const stop = useGame((state) => state.stop)
+
+    const [ smoothedCameraPosition ] = useState(new THREE.Vector3(2,2.5,2))
+    const [ smoothedCameraTarget ] = useState(new THREE.Vector3())
+
+
     // const 
     const {scene} = useThree()
     
     const end = () => {
-        console.log('lose')
         stop()
         return 0
     }
 
     const restart = () => {
-        console.log('restart')
         setBlocks([])
         setCount(0)
         resetScore()
@@ -211,6 +214,26 @@ export default function Level() {
             unsubDrop()
         }
     },[blocks])
+
+    /**
+     * CAMERA
+     */
+    useFrame((state, delta) => {
+        if (blocks.length > 2) {
+            const blockPosition = blocks[blocks.length -2].position
+            const cameraPosition = new THREE.Vector3(2,blockPosition[1], 2)
+            cameraPosition.y += 2.5
+
+            // const cameraTarget = new THREE.Vector3(blockPosition[0], blockPosition[1], blockPosition[2])
+            const cameraTarget = new THREE.Vector3(0, blockPosition[1], 0)
+
+            smoothedCameraPosition.lerp(cameraPosition, 5 * delta)
+            smoothedCameraTarget.lerp(cameraTarget, 5 * delta)
+
+            state.camera.position.copy(smoothedCameraPosition)
+            state.camera.lookAt(smoothedCameraTarget)
+        }
+    })
 
     return <>
         <Start />
