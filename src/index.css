@@ -1,3 +1,8 @@
+@font-face {
+    font-family: "Rajdhani";
+    src: url("../Rajdhani-Medium.woff");
+}
+
 html,
 body,
 #root {
@@ -7,6 +12,49 @@ body,
     width:100%;
     height:100%;
     overflow:hidden;
+}
+
+.title {
+    font-family:'Rajdhani';
+    width:30vw;
+    color:#ffffff;
+    font-size:5vw;
+}
+
+.interface {
+    position: fixed;
+    top:0;
+    left:0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    font-family: "Rajdhani";
+}
+
+.restart {
+    display: flex;
+    justify-content: center;
+    position:absolute;
+    top:50%;
+    left: 0;
+    width: 100%;
+    color:#ffffff;
+    font-size: 40px;
+    padding-top:10px;
+    pointer-events: auto;
+    cursor:pointer;
+}
+
+.count {
+    display: flex;
+    justify-content: center;
+    position:absolute;
+    top:10%;
+    left: 0;
+    width: 100%;
+    color:#ffffff;
+    font-size: 80px;
+    padding-top:10px;
 }
 
 /**
