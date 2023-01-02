@@ -1,5 +1,5 @@
 import useGame from "./stores/useGame";
-import { useKeyboardControls } from "@react-three/drei";
+import { useKeyboardControls, Text, Html } from "@react-three/drei";
 import { useEffect, useState, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from 'three'
@@ -20,11 +20,11 @@ function Start() {
 function GenerateBlock({position, color, boxSize, idx, animate = true, block}) {
     const blockRef= useRef()
     const [direction, setDirection] = useState(1)
-    const speed = 2.0
+    const speed = 2 + idx/ 30
     useFrame((state, delta) => {
         if (animate) {
             if (idx % 2 ===0) {
-                if ((blockRef.current.position.z >= 1.5 && direction > 0) || (blockRef.current.position.z < -1.5 && direction < 0) ){
+                if ((blockRef.current.position.z >= 1.5  && direction > 0) || (blockRef.current.position.z < -1.5 && direction < 0) ){
                     setDirection(direction * -1)
                 }
                 blockRef.current.position.z += speed * delta * direction
@@ -75,12 +75,12 @@ export default function Level() {
     const phase = useGame((state) => state.phase)
     const stop = useGame((state) => state.stop)
 
-    const [ smoothedCameraPosition ] = useState(new THREE.Vector3(2,2.5,2))
-    const [ smoothedCameraTarget ] = useState(new THREE.Vector3())
+    const [ smoothedCameraPosition, setSmoothedCameraPosition ] = useState(new THREE.Vector3(2,2.5,2))
+    const [ smoothedCameraTarget, setSmoothedCameraTarget ] = useState(new THREE.Vector3())
 
 
     // const 
-    const {scene} = useThree()
+    const {scene, camera} = useThree()
     
     const end = () => {
         stop()
@@ -88,6 +88,10 @@ export default function Level() {
     }
 
     const restart = () => {
+        camera.position.copy(new THREE.Vector3(2,2.5,2))
+        camera.lookAt(new THREE.Vector3(0,0,0))
+        setSmoothedCameraPosition(new THREE.Vector3(2,2.5,2))
+        setSmoothedCameraTarget(new THREE.Vector3())
         setBlocks([])
         setCount(0)
         resetScore()
@@ -237,6 +241,37 @@ export default function Level() {
 
     return <>
         <Start />
+        {/* {!count &&<Html
+            font="/Rajdhani-Medium.woff"
+            wrapperClass="title"
+            position={[0,1,0]}
+            center
+            // rotation-y={0.8}
+        >STACK TOWER</Html>} */}
+        {/* <Text
+            font="/Rajdhani-Medium.woff"
+            rotation={[-Math.PI /2,0,Math.PI /2]}
+            position={[0,-0.29, 0]}
+            scale={3}
+            textAlign="center"
+            maxWidth={0.25}
+        >STACK TOWER</Text> */}
+         <Text
+            font="/Rajdhani-Medium.woff"
+            rotation={[0,0,0]}
+            position={[0,-0.5, 0.51]}
+            scale={2}
+            textAlign="center"
+            maxWidth={0.25}
+        >STACK</Text>
+        <Text
+            font="/Rajdhani-Medium.woff"
+            rotation={[0,Math.PI/2,0]}
+            position={[0.51,-0.5, 0]}
+            scale={2}
+            textAlign="center"
+            maxWidth={0.25}
+        >TOWER</Text>
         {blocks.map((block, idx) => 
             <GenerateBlock 
                 key={idx} 
