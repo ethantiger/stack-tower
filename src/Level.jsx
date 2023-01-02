@@ -33,8 +33,9 @@ function GenerateBlock({position, color, boxSize, idx, animate = true, block}) {
                 }
                 blockRef.current.position.x += 1 * delta * direction
             }
-            
-            block.position = [blockRef.current.position.x, blockRef.current.position.y, blockRef.current.position.z]
+            if (Math.abs(block.position[0] - blockRef.current.position.x) < 0.05 &&
+                Math.abs(block.position[2] - blockRef.current.position.z < 0.05))
+                block.position = [blockRef.current.position.x, blockRef.current.position.y, blockRef.current.position.z]
         }
     })
 
@@ -47,10 +48,8 @@ function GenerateBlock({position, color, boxSize, idx, animate = true, block}) {
 }
 const changeCurBlock = (blocks,scene) => {
     if (blocks.length === 1) {
-        console.log(blocks)
         const curblock = blocks[blocks.length - 1]
         curblock.animate = false
-
         const curBlockPosition = curblock.position
         const curBlockSize = curblock.boxSize
         const direction = curblock.idx % 2 === 0
@@ -72,16 +71,9 @@ const changeCurBlock = (blocks,scene) => {
         const direction = curblock.idx % 2 === 0
         
         const basePosition = blocks[blocks.length - 2].position
-        const baseSize = blocks[blocks.length - 2].boxSize
-
-        console.log('baseSize',baseSize)
-        console.log('cursize', curBlockSize)
-        console.log('basepos', basePosition)
-        console.log('curpos', curBlockPosition)
 
         let offset = 0;
         let newSize = 0;
-        let newPosition = 0;
         if (direction) {
             if (curBlockPosition[2] < 0 && basePosition[2] < 0) {
                 offset = Math.abs(Math.abs(curBlockPosition[2]) - Math.abs(basePosition[2]))
@@ -101,7 +93,6 @@ const changeCurBlock = (blocks,scene) => {
             }
             newSize =curBlockSize[0] - Math.abs(offset)
         }        
-
         if (direction && curBlockPosition[2] > basePosition[2]) {
             curblock.position= [curBlockPosition[0], curBlockPosition[1], curBlockPosition[2] - offset /2 ]
             curblock.boxSize = [curBlockSize[0],curBlockSize[1],  newSize]
@@ -115,11 +106,10 @@ const changeCurBlock = (blocks,scene) => {
             curblock.position= [curBlockPosition[0] + offset / 2, curBlockPosition[1], curBlockPosition[2] ]
             curblock.boxSize = [newSize,curBlockSize[1], curBlockSize[2]]
         }
-        console.log(blocks)
-
+        const newPosition = [...curblock.position]
+        return newPosition
         // return [...blocks, blocks[blocks.length - 1] = curblock] 
     }
-    // return [...blocks]
 }
 
 const nextBlock = (blocks, idx) => {
@@ -134,7 +124,7 @@ const nextBlock = (blocks, idx) => {
         boxSize: blocks.length > 0 ? oldBlock.boxSize : [1,0.2,1],
         position: blocks.length % 2 === 0 ? [positionX,-0.2 + blocks.length * 0.2, -1.5] : [-1.5,-0.2 + blocks.length * 0.2, positionZ],
         color: '#7CA5B8',
-        idx
+        idx,
     }
 }
 
@@ -152,7 +142,8 @@ export default function Level() {
             (value) => {
                 if (value)  {
                     // stop previous block animation
-                    changeCurBlock(blocks,scene)
+                    const curPos = changeCurBlock(blocks,scene)
+                    // if (curBlocks) setBlocks(blocks[blocks.length-1].position = [...curBlocks])
                     // create new block arguments
                     const newBlock = nextBlock(blocks, count)
                     setCount(count+1)
