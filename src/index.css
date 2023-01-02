@@ -34,6 +34,21 @@ body,
     cursor:pointer;
 }
 
+.count {
+    display: flex;
+    justify-content: center;
+    position:absolute;
+    top:20%;
+    left: 0;
+    width: 100%;
+    color:#ffffff;
+    font-size: 80px;
+    background:#00000033;
+    padding-top:10px;
+    pointer-events: auto;
+    cursor:pointer;
+}
+
 /**
  * Controls
  */

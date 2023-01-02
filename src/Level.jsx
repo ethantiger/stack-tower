@@ -68,6 +68,8 @@ const nextBlock = (blocks, idx) => {
 export default function Level() {
     const [blocks, setBlocks] = useState([])
     const [count , setCount] = useState(0)
+    const addScore = useGame((state) => state.addScore)
+    const resetScore = useGame((state) => state.resetScore)
     const [sub, get] = useKeyboardControls()
     // const [phase, setPhase] = useState('start')
     const phase = useGame((state) => state.phase)
@@ -85,6 +87,7 @@ export default function Level() {
         console.log('restart')
         setBlocks([])
         setCount(0)
+        resetScore()
     }
 
     const changeCurBlock = () => {
@@ -115,6 +118,7 @@ export default function Level() {
                 curblock.position= [curBlockPosition[0], curBlockPosition[1], -offset / 2 ]
                 curblock.boxSize = [curBlockSize[0],curBlockSize[1], 1 + curBlockPosition[2]]
             }
+            addScore()
         // OTHER BLOCKS
         } else if (blocks.length > 0) {
             const curblock = blocks[blocks.length - 1]
@@ -167,6 +171,7 @@ export default function Level() {
                 curblock.position= [curBlockPosition[0] + offset / 2, curBlockPosition[1], curBlockPosition[2] ]
                 curblock.boxSize = [newSize,curBlockSize[1], curBlockSize[2]]
             }
+            addScore()
         }
         return 1
     }

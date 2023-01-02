@@ -8,6 +8,7 @@ export default function Interface() {
     const drop = useKeyboardControls((state) => state.drop)
     const phase = useGame((state) => state.phase)
     const reset = useGame((state) => state.reset)
+    const score = useGame((state) => state.score)
     // useEffect(() => {
     //     const unsub = addEffect(() => {
     //         const state = useGame.getState()
@@ -20,7 +21,8 @@ export default function Interface() {
 
     return <>
         <div className="interface">
-        {phase === 'stop' && <div className="restart" onClick={reset}>RESTART</div>}
+            <div className="count">{score}</div>
+            {phase === 'stop' && <div className="restart" onClick={reset}>RESTART</div>}
             <div className="controls">
                 <div className="raw">
                     <div className={`key large ${drop ? 'active': ''}`}></div>
