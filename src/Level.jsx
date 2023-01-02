@@ -3,6 +3,7 @@ import { useKeyboardControls } from "@react-three/drei";
 import { useEffect, useState, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 
+
 function Start() {
     return <>
         <mesh position-y={-0.5}>
@@ -18,17 +19,22 @@ function Start() {
 
 function GenerateBlock({position, color, boxSize, idx, animate = true, block}) {
     const blockRef= useRef()
+    const [direction, setDirection] = useState(1)
     useFrame((state, delta) => {
         if (animate) {
-            const time = state.clock.elapsedTime
-
-            // console.log(state)
-            idx % 2 === 0 ? blockRef.current.position.z = -1.5 * Math.sin(time + Math.PI/2) : blockRef.current.position.x = -1.5 * Math.sin(time + Math.PI/2)
+            if (idx % 2 ===0) {
+                if ((blockRef.current.position.z >= 1.5 && direction > 0) || (blockRef.current.position.z < -1.5 && direction < 0) ){
+                    setDirection(direction * -1)
+                }
+                blockRef.current.position.z += 1 * delta * direction
+            } else {
+                if ((blockRef.current.position.x >= 1.5 && direction > 0) || (blockRef.current.position.x < -1.5 && direction < 0) ){
+                    setDirection(direction * -1)
+                }
+                blockRef.current.position.x += 1 * delta * direction
+            }
             
             block.position = [blockRef.current.position.x, blockRef.current.position.y, blockRef.current.position.z]
-        } else {
-            block.position = [blockRef.current.position.x, blockRef.current.position.y, blockRef.current.position.z]
-
         }
     })
 
@@ -60,6 +66,7 @@ const changeCurBlock = (blocks,scene) => {
         // return [...blocks, blocks[blocks.length - 1] = curblock] 
     } else if (blocks.length > 0) {
         const curblock = blocks[blocks.length - 1]
+        curblock.animate = false
         const curBlockPosition = curblock.position
         const curBlockSize = curblock.boxSize
         const direction = curblock.idx % 2 === 0
@@ -72,28 +79,40 @@ const changeCurBlock = (blocks,scene) => {
         console.log('basepos', basePosition)
         console.log('curpos', curBlockPosition)
 
-
-        // console.log(scene)
-        let offset = curBlockSize[0] / 2 - baseSize[0] / 2 + curBlockPosition[0] + basePosition[0]
-        let newSize = curBlockSize[0] - Math.abs(offset)
+        let offset = 0;
+        let newSize = 0;
+        let newPosition = 0;
         if (direction) {
-            offset = curBlockSize[2] / 2 - baseSize[2] / 2 + curBlockPosition[2] + basePosition[2]
-            newSize = curBlockSize[2] - Math.abs(offset)
-        }
-
-        curblock.animate = false
+            if (curBlockPosition[2] < 0 && basePosition[2] < 0) {
+                offset = Math.abs(Math.abs(curBlockPosition[2]) - Math.abs(basePosition[2]))
+            } else if (curBlockPosition[2] > 0 && basePosition[2] > 0) {
+                offset = Math.abs(curBlockPosition[2] - basePosition[2])
+            } else {
+                offset = Math.abs(curBlockPosition[2]) + Math.abs(basePosition[2])
+            }
+            newSize =curBlockSize[2] - Math.abs(offset)
+        } else {
+            if (curBlockPosition[0] < 0 && basePosition[0] < 0) {
+                offset = Math.abs(Math.abs(curBlockPosition[0]) - Math.abs(basePosition[0]))
+            } else if (curBlockPosition[0] > 0 && basePosition[0] > 0) {
+                offset = Math.abs(curBlockPosition[0] - basePosition[0])
+            } else {
+                offset = Math.abs(curBlockPosition[0]) + Math.abs(basePosition[0])
+            }
+            newSize =curBlockSize[0] - Math.abs(offset)
+        }        
 
         if (direction && curBlockPosition[2] > basePosition[2]) {
-            curblock.position= [curBlockPosition[0], curBlockPosition[1], offset/2 ]
+            curblock.position= [curBlockPosition[0], curBlockPosition[1], curBlockPosition[2] - offset /2 ]
             curblock.boxSize = [curBlockSize[0],curBlockSize[1],  newSize]
         } else if (direction && curBlockPosition[2] < basePosition[2]) {
-            curblock.position= [curBlockPosition[0], curBlockPosition[1], offset/2 ]
+            curblock.position= [curBlockPosition[0], curBlockPosition[1], curBlockPosition[2] + offset /2 ]
             curblock.boxSize = [curBlockSize[0],curBlockSize[1], newSize]
         } else if (!direction && curBlockPosition[0] > basePosition[0]) {
-            curblock.position= [offset / 2, curBlockPosition[1], curBlockPosition[2]]
+            curblock.position= [curBlockPosition[0] - offset / 2, curBlockPosition[1], curBlockPosition[2]]
             curblock.boxSize = [newSize,curBlockSize[1],curBlockSize[2]]
         } else if (!direction && curBlockPosition[0] < basePosition[0]) {
-            curblock.position= [offset / 2, curBlockPosition[1], curBlockPosition[2] ]
+            curblock.position= [curBlockPosition[0] + offset / 2, curBlockPosition[1], curBlockPosition[2] ]
             curblock.boxSize = [newSize,curBlockSize[1], curBlockSize[2]]
         }
         console.log(blocks)
@@ -138,9 +157,6 @@ export default function Level() {
                     const newBlock = nextBlock(blocks, count)
                     setCount(count+1)
                     setBlocks((blocks) => [...blocks, newBlock])
-                    // reset the clock for animation
-                    requestAnimationFrame(() => clock.start())
-                    // clock.start()
                 }                    
             }
         )
