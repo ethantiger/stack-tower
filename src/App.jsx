@@ -2,7 +2,7 @@
 import { OrbitControls } from '@react-three/drei'
 
 import Level from './Level'
-import Lights from './assets/Lights'
+import Lights from './Lights'
 import { Perf } from 'r3f-perf'
 
 
