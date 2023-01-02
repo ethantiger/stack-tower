@@ -4,7 +4,7 @@ export default create((set) => {
     return {        
         phase: 'ready',
         start: () => {
-            
+            // console.log('start')
             set((state) => {
                 if (state.phase === 'ready')
                     return { phase: 'playing'}

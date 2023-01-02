@@ -33,8 +33,8 @@ function GenerateBlock({position, color, boxSize, idx, animate = true, block}) {
                 }
                 blockRef.current.position.x += 1 * delta * direction
             }
-            if (Math.abs(block.position[0] - blockRef.current.position.x) < 0.05 &&
-                Math.abs(block.position[2] - blockRef.current.position.z < 0.05))
+            // console.log(block.dropped)
+            if (!block.dropped)
                 block.position = [blockRef.current.position.x, blockRef.current.position.y, blockRef.current.position.z]
         }
     })
@@ -45,71 +45,6 @@ function GenerateBlock({position, color, boxSize, idx, animate = true, block}) {
             <meshStandardMaterial color={color}/>
         </mesh>
     )
-}
-const changeCurBlock = (blocks,scene) => {
-    if (blocks.length === 1) {
-        const curblock = blocks[blocks.length - 1]
-        curblock.animate = false
-        const curBlockPosition = curblock.position
-        const curBlockSize = curblock.boxSize
-        const direction = curblock.idx % 2 === 0
-        
-
-        if (direction && curBlockPosition[2] > 0) {
-            curblock.position= [curBlockPosition[0], curBlockPosition[1], curBlockPosition[2] / 2 ]
-            curblock.boxSize = [curBlockSize[0],curBlockSize[1],  1-curBlockPosition[2]]
-        } else if (direction && curBlockPosition[2] < 0) {
-            curblock.position= [curBlockPosition[0], curBlockPosition[1], curBlockPosition[2] / 2 ]
-            curblock.boxSize = [curBlockSize[0],curBlockSize[1], 1 + curBlockPosition[2]]
-        }
-        // return [...blocks, blocks[blocks.length - 1] = curblock] 
-    } else if (blocks.length > 0) {
-        const curblock = blocks[blocks.length - 1]
-        curblock.animate = false
-        const curBlockPosition = curblock.position
-        const curBlockSize = curblock.boxSize
-        const direction = curblock.idx % 2 === 0
-        
-        const basePosition = blocks[blocks.length - 2].position
-
-        let offset = 0;
-        let newSize = 0;
-        if (direction) {
-            if (curBlockPosition[2] < 0 && basePosition[2] < 0) {
-                offset = Math.abs(Math.abs(curBlockPosition[2]) - Math.abs(basePosition[2]))
-            } else if (curBlockPosition[2] > 0 && basePosition[2] > 0) {
-                offset = Math.abs(curBlockPosition[2] - basePosition[2])
-            } else {
-                offset = Math.abs(curBlockPosition[2]) + Math.abs(basePosition[2])
-            }
-            newSize =curBlockSize[2] - Math.abs(offset)
-        } else {
-            if (curBlockPosition[0] < 0 && basePosition[0] < 0) {
-                offset = Math.abs(Math.abs(curBlockPosition[0]) - Math.abs(basePosition[0]))
-            } else if (curBlockPosition[0] > 0 && basePosition[0] > 0) {
-                offset = Math.abs(curBlockPosition[0] - basePosition[0])
-            } else {
-                offset = Math.abs(curBlockPosition[0]) + Math.abs(basePosition[0])
-            }
-            newSize =curBlockSize[0] - Math.abs(offset)
-        }        
-        if (direction && curBlockPosition[2] > basePosition[2]) {
-            curblock.position= [curBlockPosition[0], curBlockPosition[1], curBlockPosition[2] - offset /2 ]
-            curblock.boxSize = [curBlockSize[0],curBlockSize[1],  newSize]
-        } else if (direction && curBlockPosition[2] < basePosition[2]) {
-            curblock.position= [curBlockPosition[0], curBlockPosition[1], curBlockPosition[2] + offset /2 ]
-            curblock.boxSize = [curBlockSize[0],curBlockSize[1], newSize]
-        } else if (!direction && curBlockPosition[0] > basePosition[0]) {
-            curblock.position= [curBlockPosition[0] - offset / 2, curBlockPosition[1], curBlockPosition[2]]
-            curblock.boxSize = [newSize,curBlockSize[1],curBlockSize[2]]
-        } else if (!direction && curBlockPosition[0] < basePosition[0]) {
-            curblock.position= [curBlockPosition[0] + offset / 2, curBlockPosition[1], curBlockPosition[2] ]
-            curblock.boxSize = [newSize,curBlockSize[1], curBlockSize[2]]
-        }
-        const newPosition = [...curblock.position]
-        return newPosition
-        // return [...blocks, blocks[blocks.length - 1] = curblock] 
-    }
 }
 
 const nextBlock = (blocks, idx) => {
@@ -125,6 +60,7 @@ const nextBlock = (blocks, idx) => {
         position: blocks.length % 2 === 0 ? [positionX,-0.2 + blocks.length * 0.2, -1.5] : [-1.5,-0.2 + blocks.length * 0.2, positionZ],
         color: '#7CA5B8',
         idx,
+        dropped: false,
     }
 }
 
@@ -132,31 +68,124 @@ export default function Level() {
     const [blocks, setBlocks] = useState([])
     const [count , setCount] = useState(0)
     const [sub, get] = useKeyboardControls()
-    const phase = useGame((state) => state.phase)
-    const start = useGame((state) => state.start)
-    const {clock, scene} = useThree()
+    const [phase, setPhase] = useState('start')
+    // const phase = useGame((state) => state.phase)
+    // const start = useGame((state) => state.start)
+    const {scene} = useThree()
     
+    const end = () => {
+        console.log('lose')
+        setPhase('stop')
+        return 0
+    }
+
+    const changeCurBlock = () => {
+        const minOffset = 0.05
+        // FIRST BLOCK (NO BASE)
+        if (blocks.length === 1) {
+            const curblock = blocks[blocks.length - 1]
+            curblock.animate = false
+            curblock.dropped = true
+            const curBlockPosition = curblock.position
+            const curBlockSize = curblock.boxSize
+            const direction = curblock.idx % 2 === 0
+            
+            let offset = Math.abs(curBlockPosition[0])
+            if (direction) {
+                offset = Math.abs(curBlockPosition[2])
+            }
+            if (offset < minOffset) {
+                // Perfect place condition
+                curblock.position = [0,curBlockPosition[1],0]
+            } else if (offset > curBlockSize[2]) {
+                // Lose Condition
+                return end()
+            } else if (direction && curBlockPosition[2] > 0) {
+                curblock.position= [curBlockPosition[0], curBlockPosition[1], offset / 2 ]
+                curblock.boxSize = [curBlockSize[0],curBlockSize[1],  1-curBlockPosition[2]]
+            } else if (direction && curBlockPosition[2] < 0) {
+                curblock.position= [curBlockPosition[0], curBlockPosition[1], -offset / 2 ]
+                curblock.boxSize = [curBlockSize[0],curBlockSize[1], 1 + curBlockPosition[2]]
+            }
+        // OTHER BLOCKS
+        } else if (blocks.length > 0) {
+            const curblock = blocks[blocks.length - 1]
+            curblock.animate = false
+            curblock.dropped = true
+            const curBlockPosition = curblock.position
+            const curBlockSize = curblock.boxSize
+            const direction = curblock.idx % 2 === 0
+            
+            const basePosition = blocks[blocks.length - 2].position
+    
+            // CALCULATE CUTOFF AMOUNT AND NEW BLOCK SIZE
+            let offset = 0;
+            let newSize = 0;
+            if (direction) {
+                if (curBlockPosition[2] < 0 && basePosition[2] < 0) {
+                    offset = Math.abs(Math.abs(curBlockPosition[2]) - Math.abs(basePosition[2]))
+                } else if (curBlockPosition[2] > 0 && basePosition[2] > 0) {
+                    offset = Math.abs(curBlockPosition[2] - basePosition[2])
+                } else {
+                    offset = Math.abs(curBlockPosition[2]) + Math.abs(basePosition[2])
+                }
+                newSize =curBlockSize[2] - Math.abs(offset)
+            } else {
+                if (curBlockPosition[0] < 0 && basePosition[0] < 0) {
+                    offset = Math.abs(Math.abs(curBlockPosition[0]) - Math.abs(basePosition[0]))
+                } else if (curBlockPosition[0] > 0 && basePosition[0] > 0) {
+                    offset = Math.abs(curBlockPosition[0] - basePosition[0])
+                } else {
+                    offset = Math.abs(curBlockPosition[0]) + Math.abs(basePosition[0])
+                }
+                newSize =curBlockSize[0] - Math.abs(offset)
+            }        
+            // APPLY NEW POSITION AND NEW SIZE
+            if (offset < minOffset) {
+                curblock.position = [basePosition[0], curBlockPosition[1], basePosition[2]]
+            } else if (offset > curBlockSize[0] && !direction || offset > curBlockSize[2] && direction) {
+                // Lose condition
+                return end()
+            } else if (direction && curBlockPosition[2] > basePosition[2]) {
+                curblock.position= [curBlockPosition[0], curBlockPosition[1], curBlockPosition[2] - offset /2 ]
+                curblock.boxSize = [curBlockSize[0],curBlockSize[1],  newSize]
+            } else if (direction && curBlockPosition[2] < basePosition[2]) {
+                curblock.position= [curBlockPosition[0], curBlockPosition[1], curBlockPosition[2] + offset /2 ]
+                curblock.boxSize = [curBlockSize[0],curBlockSize[1], newSize]
+            } else if (!direction && curBlockPosition[0] > basePosition[0]) {
+                curblock.position= [curBlockPosition[0] - offset / 2, curBlockPosition[1], curBlockPosition[2]]
+                curblock.boxSize = [newSize,curBlockSize[1],curBlockSize[2]]
+            } else if (!direction && curBlockPosition[0] < basePosition[0]) {
+                curblock.position= [curBlockPosition[0] + offset / 2, curBlockPosition[1], curBlockPosition[2] ]
+                curblock.boxSize = [newSize,curBlockSize[1], curBlockSize[2]]
+            }
+        }
+        return 1
+    }
+
     useEffect(() => {
         const unsubDrop = sub(
             (state) => state.drop,
             (value) => {
-                if (value)  {
+                if (value && phase==='start')  {
                     // stop previous block animation
-                    const curPos = changeCurBlock(blocks,scene)
+                    const generateNextBlock = changeCurBlock(blocks,scene)
                     // if (curBlocks) setBlocks(blocks[blocks.length-1].position = [...curBlocks])
                     // create new block arguments
-                    const newBlock = nextBlock(blocks, count)
-                    setCount(count+1)
-                    setBlocks((blocks) => [...blocks, newBlock])
+                    if (generateNextBlock) {
+                        const newBlock = nextBlock(blocks, count)
+                        setCount(count+1)
+                        setBlocks((blocks) => [...blocks, newBlock])
+                    }
                 }                    
             }
         )
 
-        const unsubAll = sub(
-            () => start()
-        )
+        // const unsubAll = sub(
+        //     () => start()
+        // )
         return () => {
-            unsubAll()
+            // unsubAll()
             unsubDrop()
         }
     },[blocks])
