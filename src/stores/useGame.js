@@ -1,20 +1,23 @@
 import create from 'zustand'
+import { subscribeWithSelector } from 'zustand/middleware'
 
-export default create((set) => {
+export default create(subscribeWithSelector((set) => {
     return {        
-        phase: 'ready',
-        start: () => {
+        phase: 'start',
+        stop: () => {
             // console.log('start')
             set((state) => {
-                if (state.phase === 'ready')
-                    return { phase: 'playing'}
+                if (state.phase === 'start')
+                    return { phase: 'stop'}
                 return {}
             })
         },
         reset: () => {
-            if (state.phase === 'playing')
-                return { phase: 'ready'}
-            return {}
+            set((state) => {
+                if (state.phase === 'stop')
+                    return { phase: 'start'}
+                return {}
+            })
         }
     }
-})
+}))

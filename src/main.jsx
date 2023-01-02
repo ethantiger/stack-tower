@@ -19,7 +19,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           fov: 45,
           near:0.1,
           far:200,
-          position:[2,2,2],
+          position:[2,2.5,2],
           zoom:300
         }}
         

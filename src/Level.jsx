@@ -20,18 +20,19 @@ function Start() {
 function GenerateBlock({position, color, boxSize, idx, animate = true, block}) {
     const blockRef= useRef()
     const [direction, setDirection] = useState(1)
+    const speed = 2.0
     useFrame((state, delta) => {
         if (animate) {
             if (idx % 2 ===0) {
                 if ((blockRef.current.position.z >= 1.5 && direction > 0) || (blockRef.current.position.z < -1.5 && direction < 0) ){
                     setDirection(direction * -1)
                 }
-                blockRef.current.position.z += 1 * delta * direction
+                blockRef.current.position.z += speed * delta * direction
             } else {
                 if ((blockRef.current.position.x >= 1.5 && direction > 0) || (blockRef.current.position.x < -1.5 && direction < 0) ){
                     setDirection(direction * -1)
                 }
-                blockRef.current.position.x += 1 * delta * direction
+                blockRef.current.position.x += speed * delta * direction
             }
             // console.log(block.dropped)
             if (!block.dropped)
@@ -68,15 +69,22 @@ export default function Level() {
     const [blocks, setBlocks] = useState([])
     const [count , setCount] = useState(0)
     const [sub, get] = useKeyboardControls()
-    const [phase, setPhase] = useState('start')
-    // const phase = useGame((state) => state.phase)
-    // const start = useGame((state) => state.start)
+    // const [phase, setPhase] = useState('start')
+    const phase = useGame((state) => state.phase)
+    const stop = useGame((state) => state.stop)
+    // const 
     const {scene} = useThree()
     
     const end = () => {
         console.log('lose')
-        setPhase('stop')
+        stop()
         return 0
+    }
+
+    const restart = () => {
+        console.log('restart')
+        setBlocks([])
+        setCount(0)
     }
 
     const changeCurBlock = () => {
@@ -164,10 +172,18 @@ export default function Level() {
     }
 
     useEffect(() => {
+        const unsubReset = useGame.subscribe(
+            (state) => state.phase,
+            (value) => {
+                if (value === 'start') restart()
+            } 
+        )
+
         const unsubDrop = sub(
             (state) => state.drop,
             (value) => {
-                if (value && phase==='start')  {
+                const gameState = useGame.getState()
+                if (value && gameState.phase==='start')  {
                     // stop previous block animation
                     const generateNextBlock = changeCurBlock(blocks,scene)
                     // if (curBlocks) setBlocks(blocks[blocks.length-1].position = [...curBlocks])
@@ -186,6 +202,7 @@ export default function Level() {
         // )
         return () => {
             // unsubAll()
+            unsubReset()
             unsubDrop()
         }
     },[blocks])
