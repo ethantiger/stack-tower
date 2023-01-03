@@ -10,13 +10,13 @@ export default function Interface() {
 
     return <>
         <div className="interface">
-            {score && <div className="count">{score}</div>}
+            {score != 0 && <div className="count">{score}</div>}
             {phase === 'stop' && <div className="restart" onClick={reset}>CLICK TO RESTART</div>}
-            <div className="controls">
+            {/* <div className="controls">
                 <div className="raw">
                     <div className={`key large ${drop ? 'active': ''}`}></div>
                 </div>
-            </div>
+            </div> */}
         </div>
     </>
 }

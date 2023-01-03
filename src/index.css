@@ -55,6 +55,7 @@ body,
     color:#ffffff;
     font-size: 80px;
     padding-top:10px;
+    pointer-events:none;
 }
 
 /**

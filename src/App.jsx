@@ -3,17 +3,18 @@ import { OrbitControls } from '@react-three/drei'
 
 import Level from './Level'
 import Lights from './Lights'
-import { Perf } from 'r3f-perf'
 
+import colorSchemes from './color'
 
+const colors = colorSchemes[Math.floor(Math.random() * colorSchemes.length)]
+console.log(colors)
 function App() {
 
   return <>
-    <color args={['#C6EBBE']} attach='background'/>
-    <Perf position='top-left'/>
+    <color args={[colors[Math.floor(Math.random() * colors.length)]]} attach='background'/>
     <OrbitControls />
     <Lights />
-    <Level />
+    <Level colors={colors}/>
   </>
 }
 

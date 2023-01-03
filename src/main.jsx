@@ -14,6 +14,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       ]}
     >
       <Canvas
+        shadows
         orthographic
         camera={{
           fov: 45,
