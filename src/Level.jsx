@@ -4,15 +4,32 @@ import { useEffect, useState, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from 'three'
 
-function Start() {
+
+function Start({colors}) {
     return <>
-        <mesh position-y={-0.5}>
+        <Text
+            font="/Rajdhani-Medium.woff"
+            rotation={[0,0,0]}
+            position={[0,-0.5, 0.51]}
+            scale={2}
+            textAlign="center"
+            maxWidth={0.25}
+        >STACK</Text>
+        <Text
+            font="/Rajdhani-Medium.woff"
+            rotation={[0,Math.PI/2,0]}
+            position={[0.51,-0.5, 0]}
+            scale={2}
+            textAlign="center"
+            maxWidth={0.25}
+        >TOWER</Text>
+        <mesh receiveShadow position-y={-0.5}>
             <boxGeometry args={[1,0.4,1]} />
-            <meshStandardMaterial color="#38369A" />
+            <meshStandardMaterial color={colors[1]} />
         </mesh>
         <mesh position-y={-1.45}>
             <boxGeometry args={[1,1.5,1]} />
-            <meshStandardMaterial color="#020887" />
+            <meshStandardMaterial color={colors[0]} />
         </mesh>
     </>
 }
@@ -20,7 +37,7 @@ function Start() {
 function GenerateBlock({position, color, boxSize, idx, animate = true, block}) {
     const blockRef= useRef()
     const [direction, setDirection] = useState(1)
-    const speed = 2 + idx/ 30
+    const speed = 2 + idx * 1.1/ 30
     useFrame((state, delta) => {
         if (animate) {
             if (idx % 2 ===0) {
@@ -41,31 +58,14 @@ function GenerateBlock({position, color, boxSize, idx, animate = true, block}) {
     })
 
     return (
-        <mesh ref={blockRef} position={position}>
+        <mesh castShadow receiveShadow ref={blockRef} position={position}>
             <boxGeometry args={boxSize}/>
             <meshStandardMaterial color={color}/>
         </mesh>
     )
 }
 
-const nextBlock = (blocks, idx) => {
-    const oldBlock = blocks[blocks.length - 1]
-    let positionX = 0
-    let positionZ = 0
-    if (blocks.length > 0) {
-        positionX = oldBlock.position[0]
-        positionZ = oldBlock.position[2]
-    }
-    return {
-        boxSize: blocks.length > 0 ? oldBlock.boxSize : [1,0.2,1],
-        position: blocks.length % 2 === 0 ? [positionX,-0.2 + blocks.length * 0.2, -1.5] : [-1.5,-0.2 + blocks.length * 0.2, positionZ],
-        color: '#7CA5B8',
-        idx,
-        dropped: false,
-    }
-}
-
-export default function Level() {
+export default function Level({colors}) {
     const [blocks, setBlocks] = useState([])
     const [count , setCount] = useState(0)
     const addScore = useGame((state) => state.addScore)
@@ -78,8 +78,6 @@ export default function Level() {
     const [ smoothedCameraPosition, setSmoothedCameraPosition ] = useState(new THREE.Vector3(2,2.5,2))
     const [ smoothedCameraTarget, setSmoothedCameraTarget ] = useState(new THREE.Vector3())
 
-
-    // const 
     const {scene, camera} = useThree()
     
     const end = () => {
@@ -88,13 +86,42 @@ export default function Level() {
     }
 
     const restart = () => {
-        camera.position.copy(new THREE.Vector3(2,2.5,2))
-        camera.lookAt(new THREE.Vector3(0,0,0))
-        setSmoothedCameraPosition(new THREE.Vector3(2,2.5,2))
-        setSmoothedCameraTarget(new THREE.Vector3())
         setBlocks([])
         setCount(0)
         resetScore()
+    }
+
+    const drop = () => {
+        console.log('drop')
+        const gameState = useGame.getState()
+        if (gameState.phase==='start')  {
+            // stop previous block animation
+            const generateNextBlock = changeCurBlock(blocks,scene)
+            // if (curBlocks) setBlocks(blocks[blocks.length-1].position = [...curBlocks])
+            // create new block arguments
+            if (generateNextBlock) {
+                const newBlock = nextBlock(blocks, count)
+                setCount(count+1)
+                setBlocks((blocks) => [...blocks, newBlock])
+            }
+        }  
+    }
+
+    const nextBlock = () => {
+        const oldBlock = blocks[blocks.length - 1]
+        let positionX = 0
+        let positionZ = 0
+        if (blocks.length > 0) {
+            positionX = oldBlock.position[0]
+            positionZ = oldBlock.position[2]
+        }
+        return {
+            boxSize: blocks.length > 0 ? oldBlock.boxSize : [1,0.2,1],
+            position: blocks.length % 2 === 0 ? [positionX,-0.2 + blocks.length * 0.2, -1.5] : [-1.5,-0.2 + blocks.length * 0.2, positionZ],
+            color: colors[Math.floor(Math.random() * colors.length)],
+            idx: count,
+            dropped: false,
+        }
     }
 
     const changeCurBlock = () => {
@@ -194,18 +221,8 @@ export default function Level() {
         const unsubDrop = sub(
             (state) => state.drop,
             (value) => {
-                const gameState = useGame.getState()
-                if (value && gameState.phase==='start')  {
-                    // stop previous block animation
-                    const generateNextBlock = changeCurBlock(blocks,scene)
-                    // if (curBlocks) setBlocks(blocks[blocks.length-1].position = [...curBlocks])
-                    // create new block arguments
-                    if (generateNextBlock) {
-                        const newBlock = nextBlock(blocks, count)
-                        setCount(count+1)
-                        setBlocks((blocks) => [...blocks, newBlock])
-                    }
-                }                    
+                if (value) 
+                    drop()                    
             }
         )
 
@@ -225,9 +242,8 @@ export default function Level() {
     useFrame((state, delta) => {
         if (blocks.length > 2) {
             const blockPosition = blocks[blocks.length -2].position
-            const cameraPosition = new THREE.Vector3(2,blockPosition[1], 2)
-            cameraPosition.y += 2.5
-
+            let cameraPosition = new THREE.Vector3(2,blockPosition[1] + 2.5, 2)
+            
             // const cameraTarget = new THREE.Vector3(blockPosition[0], blockPosition[1], blockPosition[2])
             const cameraTarget = new THREE.Vector3(0, blockPosition[1], 0)
 
@@ -236,42 +252,26 @@ export default function Level() {
 
             state.camera.position.copy(smoothedCameraPosition)
             state.camera.lookAt(smoothedCameraTarget)
+        } else {
+            setSmoothedCameraPosition(new THREE.Vector3(2,2.5,2))
+            setSmoothedCameraTarget(new THREE.Vector3())
+            camera.position.copy(new THREE.Vector3(2,2.5,2))
+            camera.lookAt(new THREE.Vector3(0,0,0))
         }
     })
 
     return <>
-        <Start />
-        {/* {!count &&<Html
-            font="/Rajdhani-Medium.woff"
-            wrapperClass="title"
-            position={[0,1,0]}
-            center
-            // rotation-y={0.8}
-        >STACK TOWER</Html>} */}
-        {/* <Text
-            font="/Rajdhani-Medium.woff"
-            rotation={[-Math.PI /2,0,Math.PI /2]}
-            position={[0,-0.29, 0]}
-            scale={3}
-            textAlign="center"
-            maxWidth={0.25}
-        >STACK TOWER</Text> */}
-         <Text
-            font="/Rajdhani-Medium.woff"
-            rotation={[0,0,0]}
-            position={[0,-0.5, 0.51]}
-            scale={2}
-            textAlign="center"
-            maxWidth={0.25}
-        >STACK</Text>
+        <Start colors={colors} />
         <Text
             font="/Rajdhani-Medium.woff"
-            rotation={[0,Math.PI/2,0]}
-            position={[0.51,-0.5, 0]}
-            scale={2}
+            rotation={[-Math.PI / 2,0,0]}
+            position={[0,-0.29, 0]}
+            scale={0.5}
             textAlign="center"
-            maxWidth={0.25}
-        >TOWER</Text>
+            onPointerMissed={drop}
+        >
+           PRESS SPACE OR CLICK TO PLAY 
+        </Text>
         {blocks.map((block, idx) => 
             <GenerateBlock 
                 key={idx} 
