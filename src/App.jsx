@@ -7,7 +7,6 @@ import Lights from './Lights'
 import colorSchemes from './color'
 
 const colors = colorSchemes[Math.floor(Math.random() * colorSchemes.length)]
-console.log(colors)
 function App() {
 
   return <>

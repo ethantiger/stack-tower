@@ -103,16 +103,22 @@ export default function Level({colors}) {
     const [ smoothedCameraPosition, setSmoothedCameraPosition ] = useState(new THREE.Vector3(2,2.5,2))
     const [ smoothedCameraTarget, setSmoothedCameraTarget ] = useState(new THREE.Vector3())
 
+    const [hitSound] = useState(() => new Audio('/impactMetal_medium_002.ogg'))
+    const [successSound] = useState(() => new Audio('/jingles_PIZZI04.ogg'))
+    const [loseSound] = useState(() => new Audio('/jingles_PIZZI07.ogg'))
+
     const {scene, camera} = useThree()
-    
+
     const end = () => {
+        loseSound.currentTime = 0 
+        loseSound.play()
         stop()
         return 0
     }
 
     const restart = () => {
         setBlocks([])
-        setBounds([])
+        setBounds([{size:[1,0.4,1], position:[0,-0.5,0]}])
         setSlicedMeshes([])
         setCount(0)
         resetScore()
@@ -170,6 +176,8 @@ export default function Level({colors}) {
             if (offset < minOffset) {
                 // Perfect place condition
                 curblock.position = [0,curBlockPosition[1],0]
+                successSound.currentTime = 0
+                successSound.play()
             } else if (offset > curBlockSize[2]) {
                 // Lose Condition
                 return end()
@@ -183,6 +191,8 @@ export default function Level({colors}) {
                     position: [curBlockPosition[0], curBlockPosition[1], curBlockPosition[2] + 0.5 - curBlockPosition[2] + offset /2],
                     color: curblock.color
                 }])
+                hitSound.currentTime = 0
+                hitSound.play()
             } else if (direction && curBlockPosition[2] < 0) {
                 curblock.position= [curBlockPosition[0], curBlockPosition[1], -offset / 2 ]
                 curblock.boxSize = [curBlockSize[0],curBlockSize[1], 1 + curBlockPosition[2]]
@@ -192,6 +202,8 @@ export default function Level({colors}) {
                     position: [curBlockPosition[0], curBlockPosition[1], curBlockPosition[2] + -0.5 - curBlockPosition[2] - offset /2],
                     color: curblock.color
                 }])
+                hitSound.currentTime = 0
+                hitSound.play()
             }
             setBounds([...bounds, {
                 size: curblock.boxSize,
@@ -234,6 +246,8 @@ export default function Level({colors}) {
             // APPLY NEW POSITION AND NEW SIZE
             if (offset < minOffset) {
                 curblock.position = [basePosition[0], curBlockPosition[1], basePosition[2]]
+                successSound.currentTime = 0
+                successSound.play()
             } else if (offset > curBlockSize[0] && !direction || offset > curBlockSize[2] && direction) {
                 // Lose condition
                 return end()
@@ -246,6 +260,8 @@ export default function Level({colors}) {
                     position: [curBlockPosition[0], curBlockPosition[1], curBlockPosition[2] + (basePosition[2] + curBlockSize[2] / 2 - curBlockPosition[2]) + offset /2],
                     color: curblock.color
                 }])
+                hitSound.currentTime = 0
+                hitSound.play()
             } else if (direction && curBlockPosition[2] < basePosition[2]) {
                 curblock.position= [curBlockPosition[0], curBlockPosition[1], curBlockPosition[2] + offset /2 ]
                 curblock.boxSize = [curBlockSize[0],curBlockSize[1], newSize]
@@ -255,6 +271,8 @@ export default function Level({colors}) {
                     position: [curBlockPosition[0], curBlockPosition[1], curBlockPosition[2] + (basePosition[2] - curBlockSize[2] / 2 - curBlockPosition[2]) - offset /2],
                     color: curblock.color
                 }])
+                hitSound.currentTime = 0
+                hitSound.play()
             } else if (!direction && curBlockPosition[0] > basePosition[0]) {
                 curblock.position= [curBlockPosition[0] - offset / 2, curBlockPosition[1], curBlockPosition[2]]
                 curblock.boxSize = [newSize,curBlockSize[1],curBlockSize[2]]
@@ -264,6 +282,8 @@ export default function Level({colors}) {
                     position: [curBlockPosition[0] + (basePosition[0] + curBlockSize[0] / 2 - curBlockPosition[0]) + offset /2, curBlockPosition[1],curBlockPosition[2]],
                     color: curblock.color
                 }])
+                hitSound.currentTime = 0
+                hitSound.play()
             } else if (!direction && curBlockPosition[0] < basePosition[0]) {
                 curblock.position= [curBlockPosition[0] + offset / 2, curBlockPosition[1], curBlockPosition[2] ]
                 curblock.boxSize = [newSize,curBlockSize[1], curBlockSize[2]]
@@ -273,6 +293,8 @@ export default function Level({colors}) {
                     position: [curBlockPosition[0] + (basePosition[0] - curBlockSize[0] / 2 - curBlockPosition[0]) - offset /2, curBlockPosition[1],curBlockPosition[2]],
                     color: curblock.color
                 }])
+                hitSound.currentTime = 0
+                hitSound.play()
             }
             setBounds([...bounds, {
                 size: curblock.boxSize,
@@ -359,8 +381,8 @@ export default function Level({colors}) {
         {slicedMeshes.map((mesh,idx) =>
             <GenerateSlice key={idx} slicedMesh={mesh} />
         )}
-        {bounds.map((bound ) =>
-            <GenerateBounds bound={bound} />
+        {bounds.map((bound, idx) =>
+            <GenerateBounds key={idx} bound={bound} />
         )}
     </>
 }
