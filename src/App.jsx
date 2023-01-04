@@ -1,4 +1,4 @@
-
+import { Physics, Debug } from '@react-three/rapier'
 import { OrbitControls } from '@react-three/drei'
 
 import Level from './Level'
@@ -14,7 +14,10 @@ function App() {
     <color args={[colors[Math.floor(Math.random() * colors.length)]]} attach='background'/>
     <OrbitControls />
     <Lights />
-    <Level colors={colors}/>
+    <Physics>
+      {/* <Debug /> */}
+      <Level colors={colors}/>
+    </Physics>
   </>
 }
 

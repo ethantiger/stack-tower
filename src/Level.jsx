@@ -3,6 +3,7 @@ import { useKeyboardControls, Text, Html } from "@react-three/drei";
 import { useEffect, useState, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from 'three'
+import { RigidBody, CuboidCollider } from "@react-three/rapier";
 
 
 function Start({colors}) {
@@ -65,8 +66,32 @@ function GenerateBlock({position, color, boxSize, idx, animate = true, block}) {
     )
 }
 
+function GenerateSlice({slicedMesh}) {
+    return (
+        <RigidBody>
+            <mesh castShadow receiveShadow position={slicedMesh.position}>
+                <boxGeometry args={slicedMesh.boxSize}/>
+                <meshStandardMaterial color={slicedMesh.color}/>
+            </mesh>
+        </RigidBody> 
+    )
+}
+
+function GenerateBounds({bound}) {
+    return (
+        <RigidBody type="fixed">
+            <CuboidCollider 
+                args={[bound.size[0]/2, bound.size[1]/2, bound.size[2]/2]}
+                position={bound.position}
+            />
+        </RigidBody>
+    )
+}
+
 export default function Level({colors}) {
     const [blocks, setBlocks] = useState([])
+    const [slicedMeshes, setSlicedMeshes] = useState([])
+    const [bounds ,setBounds] = useState([{size:[1,0.4,1], position:[0,-0.5,0]}])
     const [count , setCount] = useState(0)
     const addScore = useGame((state) => state.addScore)
     const resetScore = useGame((state) => state.resetScore)
@@ -87,12 +112,13 @@ export default function Level({colors}) {
 
     const restart = () => {
         setBlocks([])
+        setBounds([])
+        setSlicedMeshes([])
         setCount(0)
         resetScore()
     }
 
-    const drop = () => {
-        console.log('drop')
+    const drop = (e) => {
         const gameState = useGame.getState()
         if (gameState.phase==='start')  {
             // stop previous block animation
@@ -135,10 +161,12 @@ export default function Level({colors}) {
             const curBlockSize = curblock.boxSize
             const direction = curblock.idx % 2 === 0
             
+            // Calculate offset
             let offset = Math.abs(curBlockPosition[0])
             if (direction) {
                 offset = Math.abs(curBlockPosition[2])
             }
+
             if (offset < minOffset) {
                 // Perfect place condition
                 curblock.position = [0,curBlockPosition[1],0]
@@ -147,11 +175,28 @@ export default function Level({colors}) {
                 return end()
             } else if (direction && curBlockPosition[2] > 0) {
                 curblock.position= [curBlockPosition[0], curBlockPosition[1], offset / 2 ]
+                // curblock.position[2] = offset / 2
                 curblock.boxSize = [curBlockSize[0],curBlockSize[1],  1-curBlockPosition[2]]
+                // Create sliced Mesh
+                setSlicedMeshes([...slicedMeshes, {
+                    boxSize: [curBlockSize[0], curBlockSize[1], offset],
+                    position: [curBlockPosition[0], curBlockPosition[1], curBlockPosition[2] + 0.5 - curBlockPosition[2] + offset /2],
+                    color: curblock.color
+                }])
             } else if (direction && curBlockPosition[2] < 0) {
                 curblock.position= [curBlockPosition[0], curBlockPosition[1], -offset / 2 ]
                 curblock.boxSize = [curBlockSize[0],curBlockSize[1], 1 + curBlockPosition[2]]
+                // Create sliced Mesh
+                setSlicedMeshes([...slicedMeshes, {
+                    boxSize: [curBlockSize[0], curBlockSize[1], offset],
+                    position: [curBlockPosition[0], curBlockPosition[1], curBlockPosition[2] + -0.5 - curBlockPosition[2] - offset /2],
+                    color: curblock.color
+                }])
             }
+            setBounds([...bounds, {
+                size: curblock.boxSize,
+                position: curblock.position
+            }])
             addScore()
         // OTHER BLOCKS
         } else if (blocks.length > 0) {
@@ -195,16 +240,44 @@ export default function Level({colors}) {
             } else if (direction && curBlockPosition[2] > basePosition[2]) {
                 curblock.position= [curBlockPosition[0], curBlockPosition[1], curBlockPosition[2] - offset /2 ]
                 curblock.boxSize = [curBlockSize[0],curBlockSize[1],  newSize]
+                // Create sliced Mesh
+                setSlicedMeshes([...slicedMeshes, {
+                    boxSize: [curBlockSize[0], curBlockSize[1], offset],
+                    position: [curBlockPosition[0], curBlockPosition[1], curBlockPosition[2] + (basePosition[2] + curBlockSize[2] / 2 - curBlockPosition[2]) + offset /2],
+                    color: curblock.color
+                }])
             } else if (direction && curBlockPosition[2] < basePosition[2]) {
                 curblock.position= [curBlockPosition[0], curBlockPosition[1], curBlockPosition[2] + offset /2 ]
                 curblock.boxSize = [curBlockSize[0],curBlockSize[1], newSize]
+                // Create sliced Mesh
+                setSlicedMeshes([...slicedMeshes, {
+                    boxSize: [curBlockSize[0], curBlockSize[1], offset],
+                    position: [curBlockPosition[0], curBlockPosition[1], curBlockPosition[2] + (basePosition[2] - curBlockSize[2] / 2 - curBlockPosition[2]) - offset /2],
+                    color: curblock.color
+                }])
             } else if (!direction && curBlockPosition[0] > basePosition[0]) {
                 curblock.position= [curBlockPosition[0] - offset / 2, curBlockPosition[1], curBlockPosition[2]]
                 curblock.boxSize = [newSize,curBlockSize[1],curBlockSize[2]]
+                // Create sliced Mesh
+                setSlicedMeshes([...slicedMeshes, {
+                    boxSize: [offset, curBlockSize[1], curBlockSize[2]],
+                    position: [curBlockPosition[0] + (basePosition[0] + curBlockSize[0] / 2 - curBlockPosition[0]) + offset /2, curBlockPosition[1],curBlockPosition[2]],
+                    color: curblock.color
+                }])
             } else if (!direction && curBlockPosition[0] < basePosition[0]) {
                 curblock.position= [curBlockPosition[0] + offset / 2, curBlockPosition[1], curBlockPosition[2] ]
                 curblock.boxSize = [newSize,curBlockSize[1], curBlockSize[2]]
+                // Create sliced Mesh
+                setSlicedMeshes([...slicedMeshes, {
+                    boxSize: [offset, curBlockSize[1], curBlockSize[2]],
+                    position: [curBlockPosition[0] + (basePosition[0] - curBlockSize[0] / 2 - curBlockPosition[0]) - offset /2, curBlockPosition[1],curBlockPosition[2]],
+                    color: curblock.color
+                }])
             }
+            setBounds([...bounds, {
+                size: curblock.boxSize,
+                position: curblock.position
+            }])
             addScore()
         }
         return 1
@@ -282,6 +355,12 @@ export default function Level({colors}) {
                 animate={block.animate}
                 block={block}
             />
+        )}
+        {slicedMeshes.map((mesh,idx) =>
+            <GenerateSlice key={idx} slicedMesh={mesh} />
+        )}
+        {bounds.map((bound ) =>
+            <GenerateBounds bound={bound} />
         )}
     </>
 }
