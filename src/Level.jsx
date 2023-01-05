@@ -182,26 +182,26 @@ export default function Level({colors}) {
                 // Lose Condition
                 return end()
             } else if (direction && curBlockPosition[2] > 0) {
-                curblock.position= [curBlockPosition[0], curBlockPosition[1], offset / 2 ]
-                // curblock.position[2] = offset / 2
-                curblock.boxSize = [curBlockSize[0],curBlockSize[1],  1-curBlockPosition[2]]
                 // Create sliced Mesh
                 setSlicedMeshes([...slicedMeshes, {
                     boxSize: [curBlockSize[0], curBlockSize[1], offset],
                     position: [curBlockPosition[0], curBlockPosition[1], curBlockPosition[2] + 0.5 - curBlockPosition[2] + offset /2],
                     color: curblock.color
                 }])
+                curblock.position= [curBlockPosition[0], curBlockPosition[1], offset / 2 ]
+                curblock.boxSize = [curBlockSize[0],curBlockSize[1],  1-curBlockPosition[2]]
+                
                 hitSound.currentTime = 0
                 hitSound.play()
             } else if (direction && curBlockPosition[2] < 0) {
-                curblock.position= [curBlockPosition[0], curBlockPosition[1], -offset / 2 ]
-                curblock.boxSize = [curBlockSize[0],curBlockSize[1], 1 + curBlockPosition[2]]
                 // Create sliced Mesh
                 setSlicedMeshes([...slicedMeshes, {
                     boxSize: [curBlockSize[0], curBlockSize[1], offset],
                     position: [curBlockPosition[0], curBlockPosition[1], curBlockPosition[2] + -0.5 - curBlockPosition[2] - offset /2],
                     color: curblock.color
                 }])
+                curblock.position= [curBlockPosition[0], curBlockPosition[1], -offset / 2 ]
+                curblock.boxSize = [curBlockSize[0],curBlockSize[1], 1 + curBlockPosition[2]]
                 hitSound.currentTime = 0
                 hitSound.play()
             }
@@ -252,47 +252,51 @@ export default function Level({colors}) {
                 // Lose condition
                 return end()
             } else if (direction && curBlockPosition[2] > basePosition[2]) {
-                curblock.position= [curBlockPosition[0], curBlockPosition[1], curBlockPosition[2] - offset /2 ]
-                curblock.boxSize = [curBlockSize[0],curBlockSize[1],  newSize]
                 // Create sliced Mesh
                 setSlicedMeshes([...slicedMeshes, {
                     boxSize: [curBlockSize[0], curBlockSize[1], offset],
                     position: [curBlockPosition[0], curBlockPosition[1], curBlockPosition[2] + (basePosition[2] + curBlockSize[2] / 2 - curBlockPosition[2]) + offset /2],
                     color: curblock.color
                 }])
+                curblock.position= [curBlockPosition[0], curBlockPosition[1], curBlockPosition[2] - offset /2 ]
+                curblock.boxSize = [curBlockSize[0],curBlockSize[1],  newSize]
+                
                 hitSound.currentTime = 0
                 hitSound.play()
             } else if (direction && curBlockPosition[2] < basePosition[2]) {
-                curblock.position= [curBlockPosition[0], curBlockPosition[1], curBlockPosition[2] + offset /2 ]
-                curblock.boxSize = [curBlockSize[0],curBlockSize[1], newSize]
                 // Create sliced Mesh
                 setSlicedMeshes([...slicedMeshes, {
                     boxSize: [curBlockSize[0], curBlockSize[1], offset],
                     position: [curBlockPosition[0], curBlockPosition[1], curBlockPosition[2] + (basePosition[2] - curBlockSize[2] / 2 - curBlockPosition[2]) - offset /2],
                     color: curblock.color
                 }])
+                curblock.position= [curBlockPosition[0], curBlockPosition[1], curBlockPosition[2] + offset /2 ]
+                curblock.boxSize = [curBlockSize[0],curBlockSize[1], newSize]
+                
                 hitSound.currentTime = 0
                 hitSound.play()
             } else if (!direction && curBlockPosition[0] > basePosition[0]) {
-                curblock.position= [curBlockPosition[0] - offset / 2, curBlockPosition[1], curBlockPosition[2]]
-                curblock.boxSize = [newSize,curBlockSize[1],curBlockSize[2]]
                 // Create sliced Mesh
                 setSlicedMeshes([...slicedMeshes, {
                     boxSize: [offset, curBlockSize[1], curBlockSize[2]],
                     position: [curBlockPosition[0] + (basePosition[0] + curBlockSize[0] / 2 - curBlockPosition[0]) + offset /2, curBlockPosition[1],curBlockPosition[2]],
                     color: curblock.color
                 }])
+                curblock.position= [curBlockPosition[0] - offset / 2, curBlockPosition[1], curBlockPosition[2]]
+                curblock.boxSize = [newSize,curBlockSize[1],curBlockSize[2]]
+                
                 hitSound.currentTime = 0
                 hitSound.play()
             } else if (!direction && curBlockPosition[0] < basePosition[0]) {
-                curblock.position= [curBlockPosition[0] + offset / 2, curBlockPosition[1], curBlockPosition[2] ]
-                curblock.boxSize = [newSize,curBlockSize[1], curBlockSize[2]]
                 // Create sliced Mesh
                 setSlicedMeshes([...slicedMeshes, {
                     boxSize: [offset, curBlockSize[1], curBlockSize[2]],
                     position: [curBlockPosition[0] + (basePosition[0] - curBlockSize[0] / 2 - curBlockPosition[0]) - offset /2, curBlockPosition[1],curBlockPosition[2]],
                     color: curblock.color
                 }])
+                curblock.position= [curBlockPosition[0] + offset / 2, curBlockPosition[1], curBlockPosition[2] ]
+                curblock.boxSize = [newSize,curBlockSize[1], curBlockSize[2]]
+                
                 hitSound.currentTime = 0
                 hitSound.play()
             }
