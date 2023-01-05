@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client'
 import App from './App'
 import './index.css'
 import { Canvas } from '@react-three/fiber'
-import { KeyboardControls } from '@react-three/drei'
+import { KeyboardControls, Sparkles } from '@react-three/drei'
 import Interface from './interface'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -26,6 +26,14 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         
       >
         <App />
+        <Sparkles 
+          size={2}
+          scale={[5,100,0]}
+          speed={0.1}
+          count={500}
+          position={[-1,45,-1]}
+          rotation-y={0.85}
+        />
       </Canvas>
       <Interface />
     </KeyboardControls>
