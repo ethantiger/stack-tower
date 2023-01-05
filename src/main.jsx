@@ -27,7 +27,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       >
         <App />
         <Sparkles 
-          size={4}
+          size={2}
           scale={[5,100,0]}
           speed={0.1}
           count={500}

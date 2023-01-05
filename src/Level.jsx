@@ -124,7 +124,7 @@ export default function Level({colors}) {
         resetScore()
     }
 
-    const drop = (e) => {
+    const drop = () => {
         const gameState = useGame.getState()
         if (gameState.phase==='start')  {
             // stop previous block animation

@@ -1,6 +1,7 @@
 import { Physics, Debug } from '@react-three/rapier'
 import { OrbitControls, Sparkles } from '@react-three/drei'
 import { useEffect, useState } from 'react'
+import { EffectComposer, Bloom } from '@react-three/postprocessing'
 import useGame from './stores/useGame'
 import Level from './Level'
 import Lights from './Lights'
@@ -21,12 +22,15 @@ function App() {
   }, [phase])
   return <>
     <color args={[bgColor]} attach='background'/>
+    
+    <EffectComposer>
+      <Bloom mipmapBlur/>
+    </EffectComposer>
     <OrbitControls />
     <Lights />
-    
     <Physics>
       {/* <Debug /> */}
-      <Level colors={colors}/>
+      {colors.length && <Level colors={colors}/>}
     </Physics>
   </>
 }
