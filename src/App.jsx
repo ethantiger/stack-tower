@@ -1,5 +1,5 @@
 import { Physics, Debug } from '@react-three/rapier'
-import { OrbitControls } from '@react-three/drei'
+import { OrbitControls, Sparkles } from '@react-three/drei'
 import { useEffect, useState } from 'react'
 import useGame from './stores/useGame'
 import Level from './Level'
@@ -23,6 +23,7 @@ function App() {
     <color args={[bgColor]} attach='background'/>
     <OrbitControls />
     <Lights />
+    
     <Physics>
       {/* <Debug /> */}
       <Level colors={colors}/>
