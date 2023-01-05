@@ -1,7 +1,7 @@
 import { Physics, Debug } from '@react-three/rapier'
-import { OrbitControls, Sparkles } from '@react-three/drei'
+import { OrbitControls } from '@react-three/drei'
 import { useEffect, useState } from 'react'
-import { EffectComposer, Bloom } from '@react-three/postprocessing'
+
 import useGame from './stores/useGame'
 import Level from './Level'
 import Lights from './Lights'
@@ -13,6 +13,8 @@ function App() {
   const [bgColor, setBgColor] = useState([])
   const phase = useGame((state) => state.phase)
   const score = useGame((state) => state.score)
+
+
   useEffect(() => {    
     if (phase === 'start' && score === 0) {
       const colorScheme = colorSchemes[Math.floor(Math.random() * colorSchemes.length)]
@@ -22,10 +24,6 @@ function App() {
   }, [phase])
   return <>
     <color args={[bgColor]} attach='background'/>
-    
-    <EffectComposer>
-      <Bloom mipmapBlur/>
-    </EffectComposer>
     <OrbitControls />
     <Lights />
     <Physics>
